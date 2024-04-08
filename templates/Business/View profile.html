@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<form id="form1" name="form1" method="post" action="">
+  <table width="200" border="1">
+    <tr>
+      <td>Logo</td>
+      <td>&nbsp;<img src="{{ i.photo }}" height="100px" width="100px"></td>
+    </tr>
+    <tr>
+      <td>Name</td>
+      <td>&nbsp;{{ i.name }}</td>
+    </tr>
+    <tr>
+      <td>Address:</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>City</td>
+      <td>&nbsp;{{ i.city }}</td>
+    </tr>
+    <tr>
+      <td>District</td>
+      <td>&nbsp;{{ i.district }}</td>
+    </tr>
+    <tr>
+      <td>State</td>
+      <td>&nbsp;{{ i.state }}</td>
+    </tr>
+    <tr>
+      <td>Pincode</td>
+      <td>&nbsp;{{ i.pincode }}</td>
+    </tr>
+    <tr>
+      <td>Post</td>
+      <td>&nbsp;{{ i.post }}</td>
+    </tr>
+    <tr>
+      <td>Phone</td>
+      <td>&nbsp;{{ i.phone }}</td>
+    </tr>
+    <tr>
+      <td>Email</td>
+      <td>&nbsp;{{ i.email }}</td>
+    </tr>
+    <tr>
+      <td>ID Proof</td>
+      <td>&nbsp;<img src="{{ i.idproof }}" height="100px" width="100px"></td>
+    </tr>
+    <tr>
+      <td>Prop Name</td>
+      <td>&nbsp;{{ i.propname }}</td>
+    </tr>
+    <tr>
+      <td>Prop Photo</td>
+      <td>&nbsp;<img src="{{ i.propphoto }}" height="100px" width="100px"></td>
+    </tr>
+    <tr>
+      <td>Prop Email</td>
+      <td>&nbsp;{{ i.propemail }}</td>
+    </tr>
+    <tr>
+      <td>Prop Phone</td>
+      <td>&nbsp;{{ i.propphone }}</td>
+    </tr>
+    <tr>
+      <td>Website</td>
+      <td>&nbsp;{{ i.website }}</td>
+    </tr>
+    <tr>
+      <td>Opening Time</td>
+      <td>&nbsp;{{ i.openingtime }}</td>
+    </tr>
+    <tr>
+      <td>Closing Time</td>
+      <td>&nbsp;{{ i.closingtime }}</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><a href="/myapp/editprofile/">Edit</a></td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>

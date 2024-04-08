@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<form id="form1" name="form1" method="post" action="/myapp/viewapproslot_post/">
+    {% csrf_token %}
+<table width="200" border="1">
+  <tr>
+    <td><input type="text" name="textfield" id="textfield" placeholder="Search by Slot Number.."/></td>
+    <td><input type="submit" name="button" id="button" value="Search" /></td>
+  </tr>
+</table>
+<table width="200" border="1">
+  <tr>
+    <td>SI/No</td>
+    <td>Photo</td>
+    <td>Name</td>
+    <td>Gender</td>
+    <td>DOB</td>
+    <td>Phone No.</td>
+    <td>Email</td>
+    <td>Address</td>
+    <td>Slot No</td>
+    <td>Date &amp; Time</td>
+    <td>Status</td>
+    <td></td>
+  </tr>
+    {% for i in data %}
+  <tr>
+    <td>&nbsp;{{ forloop.counter }}</td>
+    <td>&nbsp;<img src= "{{ i.USER.photo }}" height="100" width="100" ></td>
+    <td>&nbsp;{{ i.USER.name }}</td>
+    <td>&nbsp;{{ i.USER.gender }}</td>
+    <td>&nbsp;{{ i.USER.dob }}</td>
+    <td>&nbsp;{{ i.USER.phone }}</td>
+    <td>&nbsp;{{ i.USER.email }}</td>
+    <td>&nbsp;{{ i.USER.place }} <br> {{ i.USER.post }} <br> {{ i.USER.pincode }}</td>
+    <td>&nbsp;{{ i.id }}</td>
+    <td>&nbsp;{{ i.date }} <br> {{ i.time }}</td>
+    <td>{{ i.status }}</td>
+    <td><a href="/myapp/sendnotifibusines/{{ i.USER.LOGIN.id }}">Send Notification</a></td>
+  </tr>
+    {% endfor %}
+</table>
+</form>
+</body>
+</html>

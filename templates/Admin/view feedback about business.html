@@ -1,0 +1,45 @@
+{% extends "Admin/index.html" %}
+{% block body %}
+<body><form action="/myapp/viewfeedbusines_post/" method="post">
+    {% csrf_token %}
+<table width="200" border="1">
+  <tr>
+    <td><input type="text" name="textfield7" id="textfield" placeholder="Search by Name"/></td>
+{#    <td><input type="submit" name="button" id="button" value="Search" /></td>#}
+  </tr>
+</table>
+    <table width="200" border="1">
+  <tr>
+    <td>From Date</td>
+    <td><label for="textfield"></label>
+      <input type="date" name="textfield" id="textfield" /></td>
+    <td>To date</td>
+    <td><label for="textfield2"></label>
+      <input type="date" name="textfield2" id="textfield2" /></td>
+    <td><input type="submit" name="button2" id="button2" value="Search" /></td>
+  </tr>
+</table>
+<table width="200" border="1">
+  <tr>
+    <td>SI/No</td>
+    <td>User Name</td>
+    <td>Business Name</td>
+    <td>Review</td>
+    <td>Date &amp; Time</td>
+    <td>Rating</td>
+  </tr>
+            {% for i in data %}
+
+  <tr>
+    <td>&nbsp;{{ forloop.counter }}</td>
+    <td>&nbsp;{{ i.CUSTOMER.name }}</td>
+    <td>&nbsp;{{ i.BUSSINESS.name }}</td>
+    <td>&nbsp;{{ i.review }}</td>
+    <td>&nbsp;{{ i.date }} <br> {{ i.time }}</td>
+    <td>&nbsp;{{ i.rating }}</td>
+  </tr>
+    {%  endfor %}
+</table>
+</form>
+</body>
+{% endblock %}
