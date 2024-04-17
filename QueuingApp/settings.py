@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-xken(v2tp2d05-6hgbxe7-gz31-io2l9_i#2vp%o14m=%48ill
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -139,3 +139,5 @@ EMAIL_HOST_USER = 'queue123app@gmail.com'
 EMAIL_HOST_PASSWORD = 'qnomvkemkqoszcxr'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024*1024 * 50

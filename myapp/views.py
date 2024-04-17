@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -49,9 +49,10 @@ def changepass_post(request):
             p.save()
             return HttpResponse('''<script>alert('Password Changed Successfully !!');window.location="/myapp/login/"</script>''')
         else:
-            return HttpResponse('''<script>alert('Invalid User Name !!');window.location="/myapp/login/"</script>''')
+            return HttpResponse('''<script>alert('Passwords do not match !!');history.back()</script>''')
     else:
-        return HttpResponse('''<script>alert('Password Not Match !!');window.location="/myapp/login/"</script>''')
+        return HttpResponse('''<script>alert('Current Password do not match !!');history.back()</script>''')
+
 
 
 def viewbusinesapprorej(request):
@@ -60,24 +61,21 @@ def viewbusinesapprorej(request):
 
 def viewbusinesapprorej_post(request):
     search=request.POST['textfield']
-
     v = Bussiness.objects.filter(status='pending',name__icontains=search)
     return render(request, 'Admin/view buss,appr or rejet.html', {'data': v})
 
 
-
 def approve(request,id):
     from datetime import datetime
-    r=Bussiness.objects.filter(LOGIN_id = id).update(status = 'approved',date = datetime.now().strftime("%Y%m%d-%H%M%S"))
+    r=Bussiness.objects.filter(LOGIN_id = id).update(status = 'approved',date = datetime.now().strftime("%Y-%m-%d"))
     t=Login.objects.filter(id = id ).update(type='Bussiness')
     return HttpResponse('''<script>alert('Approve Successfully !!');window.location="/myapp/viewbusinesapprorej/"</script>''')
 
 def reject(request,id):
     from datetime import datetime
-    v=Bussiness.objects.filter(LOGIN_id = id).update(status = 'rejected',date = datetime.now().strftime("%Y%m%d-%H%M%S"))
+    v=Bussiness.objects.filter(LOGIN_id = id).update(status = 'rejected',date = datetime.now().strftime("%Y%m%d"))
     j=Login.objects.filter(id = id ).update(type = 'reject')
     return HttpResponse('''<script>alert('Rejected Successfully !!');window.location="/myapp/viewbusinesapprorej/"</script>''')
-
 
 
 def viewapprobusines(request):
@@ -86,7 +84,6 @@ def viewapprobusines(request):
 
 def viewapprobusines_post(request):
     search = request.POST['textfield']
-
     v=Bussiness.objects.filter(status='approved',name__icontains=search)
     return render(request, 'Admin/view appro bussines.html',{'data':v})
 
@@ -178,11 +175,12 @@ def adminhome(request):
 
 
 def signup(request):
-    return render(request,'Business/signup page.html')
+    return render(request,'Business/signup.html')
 
 def signup_post(request):
     name=request.POST['textfield']
     city=request.POST['textfield2']
+
     district=request.POST['textfield3']
     state = request.POST['textfield4']
     pin = request.POST['textfield5']
@@ -201,6 +199,12 @@ def signup_post(request):
     password=request.POST['textfield8']
     cpassword=request.POST['textfield9']
 
+    if password != cpassword:
+        return HttpResponse('''<script>alert('Passwords do not match !!');history.back()</script>''')
+
+    if Login.objects.filter(username=email).exists():
+        return HttpResponse('''<script>alert('Mail already exists !!');history.back()</script>''')
+
     fs=FileSystemStorage()
     date=datetime.now().strftime("%Y%m%d-%H%M%S")+".jpg"
     fs.save(date,propphoto)
@@ -217,9 +221,9 @@ def signup_post(request):
 
 
     l=Login()
-    l.username=name
+    l.username=email
     l.password=password
-    l.type='Bussiness'
+    l.type='pending'
     l.save()
 
     b=Bussiness()
@@ -240,6 +244,7 @@ def signup_post(request):
     b.website=website
     b.openingtime=openingtime
     b.closingtime=closingtime
+    b.status="pending"
     b.LOGIN=l
     b.date=datetime.now().date()
     b.save()
@@ -359,23 +364,53 @@ def addslot(request):
     return render(request,'Business/add slot.html')
 
 def addslot_post(request):
-    slotnum=request.POST['textfield']
-    date=request.POST['textfield1']
-    timefrom=request.POST['textfield2']
-    timeto=request.POST['textfield3']
-    obj=Slot()
-    obj.number=slotnum
-    obj.date=date
-    obj.fromtime=timefrom
-    obj.totime=timeto
-    obj.BUSSINESS=Bussiness.objects.get(LOGIN=request.session['lid'])
-    obj.save()
+    # slotnum=request.POST['textfield']
+    # stno=int(slotnum)
+    date = request.POST['textfield1']
+    timefrom = request.POST['textfield2']
+    timeto = request.POST['textfield3']
+    strttime = datetime.strptime(timefrom, "%H:%M")
+    endtime = datetime.strptime(timeto, "%H:%M")
+    slot = []
+    current_time = strttime
+
+    existing_slots = Slot.objects.filter(
+        date=date,
+        fromtime__gte=strttime.strftime("%I:%M %p"),
+        totime__lte=endtime.strftime("%I:%M %p"),
+        BUSSINESS__LOGIN_id=request.session['lid']
+    )
+
+    if existing_slots.exists():
+
+        print("Slots already exist for the given date and time range. Skipping creation.")
+    else:
+        while current_time < endtime:
+            slot_end_time = current_time + timedelta(minutes=15)
+            slot.append((current_time.strftime("%I:%M %p"), slot_end_time.strftime("%I:%M %p")))
+            current_time = slot_end_time
+
+        start = 1
+        exSlot = Slot.objects.filter(BUSSINESS__LOGIN_id=request.session['lid'], date=date).order_by('-id')
+        # exSlot = Slot.objects.filter(BUSSINESS__LOGIN_id=request.session['lid']).order_by('-id')
+        if exSlot.exists():
+            start = exSlot[0].number + 1
+        for index, slot in enumerate(slot, start=start):
+            print(f"Slot {index}:{slot[0]}-{slot[1]}")
+            obj = Slot()
+            obj.number = index
+            obj.date = date
+            obj.fromtime = slot[0]
+            obj.totime = slot[1]
+            obj.BUSSINESS = Bussiness.objects.get(LOGIN=request.session['lid'])
+            obj.expectedtime = slot[0]
+            obj.save()
     return HttpResponse('''<script>alert('Slot Number Added !!');window.location="/myapp/bussinesshome/"</script>''')
 
 
 
 def viewslot(request):
-    var=Slot.objects.all()
+    var=Slot.objects.filter(BUSSINESS__LOGIN_id=request.session['lid'])
     return render(request,'Business/view slot.html',{'data':var})
 
 def deleteslot(request,id):
@@ -384,19 +419,27 @@ def deleteslot(request,id):
 
 
 def confirmslotreq(request):
-    var=BookingRequest.objects.filter(status='pending')
+    var=BookingRequest.objects.filter(status='pending', SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
     return render(request,'Business/confirm usertime slot request.html',{'data':var})
 
 def confirmslotreq_post(request):
     search=request.POST['textfield']
-    var=BookingRequest.objects.filter(status='pending',id__icontains=search)
+    var=BookingRequest.objects.filter(status='pending',id__icontains=search, SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
 
     return render(request, 'Business/confirm usertime slot request.html',{'data':var})
 
 
 def approveslot(request,id):
-    var=BookingRequest.objects.filter(id=id).update(status='approved')
-
+    var=BookingRequest.objects.filter(id=id)
+    var.update(status='approved')
+    noti = Notification()
+    noti.FROM_id = request.session['lid']
+    noti.TO_id = var[0].USER.LOGIN_id
+    noti.date = datetime.now().date()
+    noti.time = datetime.now().strftime('%H:%M')
+    noti.message = 'Slot '+var[0].SLOT.fromtime+ ' to '+var[0].SLOT.totime+' has been approved.'
+    noti.type = 'Slot Approval'
+    noti.save()
     return HttpResponse('''<script>alert('Slot Number Approved Successfully !!');window.location="/myapp/confirmslotreq/"</script>''')
 
 def rejectslot(request,id):
@@ -405,21 +448,21 @@ def rejectslot(request,id):
 
 
 def viewapproslot(request):
-    var=BookingRequest.objects.filter(status='approved')
+    var=BookingRequest.objects.filter(status='approved', SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
     return render(request,'Business/view approved slots.html',{'data':var})
 
 def viewapproslot_post(request):
     search=request.POST['textfield']
-    var=BookingRequest.objects.filter(status='approved',id__icontains=search)
+    var=BookingRequest.objects.filter(status='approved',id__icontains=search, SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
     return render(request, 'Business/view approved slots.html',{'data':var})
 
 def viewrejectslot(request):
-    var=BookingRequest.objects.filter(status='rejected')
+    var=BookingRequest.objects.filter(status='rejected', SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
     return render(request,'Business/view rejected slots.html',{'data':var})
 
 def viewrejectslot_post(request):
     search=request.POST['textfield']
-    var=BookingRequest.objects.filter(status='rejected',id__icontains=search)
+    var=BookingRequest.objects.filter(status='rejected',id__icontains=search, SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
     return render(request, 'Business/view rejected slots.html',{'data':var})
 
 
@@ -443,17 +486,17 @@ def sendnotifibusines_post(request):
 
 
 def bussinesshome(request):
-    return render(request,'Business/bussinesshome.html')
+    return render(request,'Business/index.html')
 
 
 def viewnotifi(request):
-    var = Notification.objects.all()
+    var = Notification.objects.filter(FROM_id = request.session['lid'])
     return render(request,'Business/view notification.html',{'data':var})
 
 def viewnotifi_post(request):
     fromdate = request.POST['textfield']
     todate = request.POST['textfield2']
-    var = Notification.objects.filter(date__range=[fromdate,todate])
+    var = Notification.objects.filter(date__range=[fromdate,todate],FROM_id= request.session['lid'])
     return render(request,'Business/view notification.html',{'data':var})
 
 def deletenotifi(request,id):
@@ -528,23 +571,19 @@ def user_login(request):
         return JsonResponse({'status': 'no'})
 
 def user_changepassword(request):
-    oldpassword=request.POST['oldpassword']
-    newpassword=request.POST['newpassword']
-    confirmpassword = request.POST['cp']
+    oldpassword=request.POST['current']
+    newpassword=request.POST['new']
+    confirmpassword = request.POST['confirm']
     lid = request.POST['lid']
-    res = Login.objects.filter(id =lid,password=oldpassword)
+    res=Login.objects.filter(password=oldpassword, id=lid)
     if res.exists():
-        log = Login.objects.get(id =lid,password=oldpassword)
-        if log is not None:
-            if newpassword == confirmpassword:
-                log = Login.objects.filter(id =lid,password = oldpassword).update(password=confirmpassword)
-                return JsonResponse({'staus':'ok'})
-            else :
-                return JsonResponse({'staus':'not ok'})
-        else :
-            return JsonResponse({'staus': 'not ok'})
-    else :
-        return JsonResponse({'staus': 'not ok'})
+        if newpassword == confirmpassword:
+            res = Login.objects.filter(id=lid, password=oldpassword).update(password=confirmpassword)
+            return JsonResponse({"status":"ok"})
+        else:
+            return JsonResponse({"status":"no"})
+    else:
+        return JsonResponse({"status":"not"})
 
 
 def user_signup(request):
@@ -553,41 +592,45 @@ def user_signup(request):
     dob = request.POST['dob']
     photo = request.POST['photo']
     email = request.POST['email']
-    phone = request.POST['phone']
+    phone = request.POST['phoneno']
     place = request.POST['place']
     post = request.POST['post']
     pincode = request.POST['pincode']
     password = request.POST['password']
-    cpassword =request.POST['cpassword']
+    cpassword =request.POST['confirm_password']
 
-    import base64
-    a = base64.b64decode(photo)
-    from datetime import datetime
-    date = datetime.now().strftime('%Y%m%d-%H%M%S')+ '.jpg'
-    fh = open('C:\\Users\\USER\\PycharmProjects\\QueuingApp\\media\\user\\'+date,'wb')
-    path = '/media/user/'+date
-    fh.write(a)
-    fh.close()
+    if password == cpassword:
+        if not Login.objects.filter(username=email).exists():
+            import base64
+            a = base64.b64decode(photo)
+            from datetime import datetime
+            date = datetime.now().strftime('%Y%m%d-%H%M%S')+ '.jpg'
+            fh = open(settings.MEDIA_ROOT+'\\user\\'+date,'wb')
+            path = '/media/user/'+date
+            fh.write(a)
+            fh.close()
 
-    var = Login()
-    var.username = email
-    var.password = cpassword
-    var.type = 'User'
-    var.save()
+            var = Login()
 
-    l = User()
-    l.name = name
-    l.gender = gender
-    l.dob = dob
-    l.photo = path
-    l.email = email
-    l.phone = phone
-    l.place = place
-    l.post = post
-    l.pincode = pincode
-    l.LOGIN = var
-    l.save()
-    return JsonResponse({'status':'ok'})
+            var.username = email
+            var.password = cpassword
+            var.type = 'User'
+            var.save()
+
+            l = User()
+            l.name = name
+            l.gender = gender
+            l.dob = dob
+            l.photo = path
+            l.email = email
+            l.phone = phone
+            l.place = place
+            l.post = post
+            l.pincode = pincode
+            l.LOGIN = var
+            l.save()
+            return JsonResponse({'status':'ok'})
+    return JsonResponse({'status':'no'})
 
 
 def user_editprofile(request):
@@ -633,18 +676,16 @@ def user_viewprofile(request):
     return  JsonResponse({'status':'ok','name':var.name, 'gender':var.gender, 'dob':var.dob, 'photo':var.photo, 'email':var.email, 'phone':var.phone,
                           'place':var.place, 'post':var.post, 'pincode':var.pincode})
 
+
 def user_viewbussiness(request):
     obj = Bussiness.objects.filter(status="approved")
     l = []
     for i in obj:
-        l.append({'status':'ok','photo':i.photo, 'name':i.name, 'city':i.city, 'district':i.district,
+        l.append({'status':'ok',"id":i.id,'photo':i.photo, 'name':i.name, 'city':i.city, 'district':i.district,
                   'state':i.state, 'pincode':i.pincode, 'post':i.post, 'phone':i.phone, 'email':i.email, 'propname':i.propname,
                    'propemail':i.propemail, 'propphone':i.propphone, 'website':i.website,
-                  'openingtime':i.openingtime, 'closingtime':i.closingtime})
+                  'openingtime':i.openingtime, 'closingtime':i.closingtime,"blid":i.LOGIN.id})
     return  JsonResponse({'status':'ok',"data":l})
-
-
-
 
 
 def user_viewbussiness_location(request):
@@ -653,26 +694,64 @@ def user_viewbussiness_location(request):
 def user_viewbussiness_byname(request):
     return  JsonResponse({'status':'ok'})
 
-
-
-
+print(BookingRequest.objects.filter().values_list('SLOT__date').distinct())
 def user_viewcurrentslot(request):
     bid=request.POST['bid']
-    var = Slot.objects.filter(BUSSINESS__id=bid)
+    # var = Slot.objects.filter(BUSSINESS__id=bid).order_by('-number')
+    bkl = BookingRequest.objects.filter().values_list('SLOT_id', 'SLOT__date')
+    try:
+        var = Slot.objects.filter(BUSSINESS__id=bid, date__gte=datetime.now().date().today())\
+            .exclude(id__in=BookingRequest.objects.filter().values_list('SLOT_id')[0],
+                     date__in=BookingRequest.objects.filter().values_list('SLOT__date').distinct()[0]).order_by('-number')
+    except:
+        var = Slot.objects.filter(BUSSINESS__id=bid, date__gte=datetime.now().date().today()).order_by('-number')
+    ctime = datetime.now().strftime('%Y-%m-%d %I:%M %p')
     l = []
+    current = '0'
     for i in var:
-        l.append({'id':i.id,'number':i.number, 'date':i.date, 'fromtime':i.fromtime, 'totime':i.totime})
-    return  JsonResponse({'status':'ok',"data":l})
+        if BookingRequest.objects.filter(SLOT_id=i.id).exists():
+            continue
+        if datetime.strptime(str(i.date)+' '+i.fromtime, '%Y-%m-%d %I:%M %p') > datetime.strptime(ctime, '%Y-%m-%d %I:%M %p') and str(i.date) >= str(datetime.now().date()):
+            if ctime>=i.fromtime and ctime<=i.totime and str(i.date) == str(datetime.now().date()):
+                current = i.number
+            l.append({'id':i.id,'number':i.number, 'date':i.date, 'fromtime':i.fromtime, 'totime':i.totime})
+    print(l)
+    return  JsonResponse({'status':'ok',"data":l, 'current': current})
 
 def user_bookslot(request):
     lid = request.POST['lid']
     sid = request.POST['sid']
     obj = BookingRequest()
+    obj.USER=User.objects.get(LOGIN__id=lid)
+    obj.SLOT_id=sid
     obj.date = datetime.now().date().today()
-    obj.time = datetime.now().strftime()
+    obj.time = datetime.now().time()
     obj.status = 'pending'
     obj.save()
     return  JsonResponse({'status':'ok'})
+
+
+
+def user_view_request(request):
+    lid=request.POST['lid']
+    res=BookingRequest.objects.filter(USER__LOGIN__id=lid)
+    l=[]
+    for i in res:
+        l.append({'id': i.id, 'number': i.SLOT.number, 'date': i.SLOT.date, 'fromtime': i.SLOT.fromtime, 'totime': i.SLOT.totime,"bname":i.SLOT.BUSSINESS.name,"bstatus":i.status,"expectedtime":i.SLOT.expectedtime})
+    return JsonResponse({'status': 'ok', "data": l})
+
+def user_view_request_home(request):
+    lid=request.POST['lid']
+    from django.db.models import Q
+    res=BookingRequest.objects.filter(Q(status__icontains='approved')| Q(status__icontains='pending'),USER__LOGIN__id=lid, date__gte=datetime.now().date())
+    l=[]
+    for i in res:
+        cslt = ''
+        if BookingRequest.objects.filter(status='Completed', SLOT__date=datetime.now().date(), SLOT__BUSSINESS=i.SLOT.BUSSINESS).exists():
+            cslt = BookingRequest.objects.filter(status='Completed', SLOT__date=datetime.now().date(), SLOT__BUSSINESS=i.SLOT.BUSSINESS)[0].SLOT.number
+        l.append({'id': i.id, 'number': i.SLOT.number, 'date': i.SLOT.date, 'fromtime': i.SLOT.fromtime, 'totime': i.SLOT.totime,"bname":i.SLOT.BUSSINESS.name,"bstatus":i.status,"expectedtime":i.SLOT.expectedtime, 'cslt':cslt})
+    return JsonResponse({'status': 'ok', "data": l})
+
 
 def user_viewestimated_waittime(request):
     return  JsonResponse({'status':'ok'})
@@ -704,19 +783,278 @@ def user_feedbackbussiness(request):
 
 def user_feedbackapp(request):
     lid = request.POST['lid']
-    review = request.POST['review']
-    rating = request.POST['rating']
+    review = request.POST['complaint']
     obj = FeedbackApp()
     obj.date = datetime.now().date().today()
-    obj.time = datetime.now().strftime()
+    obj.time = datetime.now().time()
     obj.FROM = Login.objects.get(id = lid)
     obj.review = review
-    obj.rating = rating
     obj.save()
     return  JsonResponse({'status':'ok'})
 
 
 
+# def business_updatestatus(request,sid):
+    # lid=request.session['lid']
+    # res=BookingRequest.objects.filter(id=sid,SLOT__BUSSINESS__LOGIN__id=lid).update(status="finish")
+    # aa = BookingRequest.objects.get(id=sid, SLOT__BUSSINESS__LOGIN__id=lid)
+    # currenttime=datetime.now().strftime("%I:%M %p")
+    # fromtime=aa.SLOT.fromtime
+    # totime=aa.SLOT.totime
+    # slotid=aa.SLOT.id
+    #
+    # print(currenttime,"Jjjjjjjjjjjjj")
+    # time1=datetime.strptime(currenttime,"%I:%M %p")
+    # print(time1,"kkkkkkkkkkk")
+    #
+    # time2=datetime.strptime(totime,"%I:%M %p")
+    # print(time2,"-------------",time1)
+    # print(type(time2),type(time1))
+    # time_diff=(time2-time1).total_seconds()/60
+    # print(time_diff,"hhhhh")
+    # s=Slot.objects.filter(id__lte=slotid)
+    # for i in s:
+    #     sm=i. expectedtime
+    #     time2 = datetime.strptime(sm, "%I:%M %p")
+    #
+    #
+    #
+    #     if time_diff > 0 :
+    #         time3 = datetime(minute=int(time_diff), year=2001, month=1, day=1)
+    #         at = time2 + time3
+    #         i.expectedtime=at
+    #         i.save()
+    #     else:
+    #
+    #         time_diff= time_diff*-1
+    #
+    #
+    #         time3 = datetime(minute=int(time_diff), year=2001, month=1, day=1)
+    #         # at = time2 + time3
+    #         ac=time2-time3
+    #         i.expectedtime=ac
+    #         i.save()
+    # # ab=str(aa.SLOT.totime)-str(time_diff)
+    # # print(ab,"hhhhh")
+
+    # return HttpResponse('''<script>alert('Updated Successfully !!');window.location="/myapp/viewapproslot/"</script>''')
+
+
+from datetime import datetime, timedelta
+from django.http import HttpResponse
+from django.shortcuts import redirect
+
+
+# def finish_booking(request, sid):
+#     if 'lid' in request.session:
+#         lid = request.session['lid']
+#
+#         # Update booking request status to "finish"
+#         BookingRequest.objects.filter(id=sid, SLOT__BUSSINESS__LOGIN__id=lid).update(status="finish")
+#
+#         # Get the booking request
+#         aa = BookingRequest.objects.get(id=sid, SLOT__BUSSINESS__LOGIN__id=lid)
+#
+#         currenttime = datetime.now()
+#         fromtime = datetime.strptime(aa.SLOT.fromtime, "%I:%M %p")
+#         totime = datetime.strptime(aa.SLOT.totime, "%I:%M %p")
+#         ctm = datetime.strptime(str(datetime.now().strftime('%I:%M %p')), "%I:%M %p")
+#         slotid = aa.SLOT.id
+#
+#         time_diff = (totime - currenttime).total_seconds()/60
+#         # time_diff_days = (((currenttime - totime).days))
+#         # print(time_diff_days, totime)
+#         # print(currenttime, "Time Difference", timedelta(minutes=-time_diff,))
+#         print(currenttime, "Time Difference", timedelta(minutes=-time_diff))
+#
+#         # Update expected times for slots
+#         slots = Slot.objects.filter(id__gte=slotid)
+#
+#         for slot in slots:
+#             sm = datetime.strptime(slot.expectedtime, "%I:%M %p")
+#
+#             if time_diff > 0:
+#                 new_expected_time = currenttime + timedelta(minutes=time_diff)
+#             else:
+#                 new_expected_time = currenttime - timedelta(minutes=-time_diff)
+#
+#             print(new_expected_time.strftime("%I:%M %p"))
+#             slot.expectedtime = new_expected_time.strftime("%I:%M %p")
+#             # slot.save()
+#         aa.status = 'Completed'
+#         aa.save()
+#         return HttpResponse("Booking finished successfully!")
+#
+#     else:
+#         return HttpResponse("Session variable 'lid' not found", status=400)
+
+def finish_booking(request, sid):
+    if 'lid' in request.session:
+        lid = request.session['lid']
+
+        BookingRequest.objects.filter(id=sid, SLOT__BUSSINESS__LOGIN__id=lid).update(status="finish")
+
+        aa = BookingRequest.objects.get(id=sid, SLOT__BUSSINESS__LOGIN__id=lid)
+
+        current_time = datetime.now()
+        time_obj = datetime.strptime(aa.SLOT.totime, "%I:%M %p")
+        formatted_time_str = time_obj.strftime("%H:%M:%S.%f")
+
+        totime = datetime.strptime(str(aa.SLOT.date)+' '+formatted_time_str, "%Y-%m-%d %H:%M:%S.%f")
+        time_diff = (totime - current_time).total_seconds()/60
+
+        slots = Slot.objects.filter(id__gt=aa.SLOT.id, date__gte=datetime.now().date()).order_by('id')
+
+        for slot in slots:
+            time_objw = datetime.strptime(slot.expectedtime, "%I:%M %p")
+            formatted_time_strw = time_objw.strftime("%H:%M:%S.%f")
+
+            expected_time = datetime.strptime(str(aa.SLOT.date)+' '+formatted_time_strw, "%Y-%m-%d %H:%M:%S.%f")
+
+            new_expected_time = expected_time - timedelta(minutes=time_diff)
+
+            # if current_time > totime:
+            #     print("New expected time is greater than to time")
+            #     new_expected_time = expected_time + timedelta(minutes=time_diff)
+            # elif current_time < totime:
+            #     new_expected_time = expected_time - timedelta(minutes=time_diff)
+            #     print("New expected time is less than to time")
+            # else:
+            #     print("New expected time is equal to current time")
+
+            print(new_expected_time.strftime("%Y-%m-%d %H:%M:%S"))
+
+            slot.expectedtime = new_expected_time.strftime('%I:%M %p')
+            slot.save()
+
+
+        aa.status = 'Completed'
+        aa.save()
+        return HttpResponse('''<script>alert("Booking finished successfully!"); window.location='/myapp/viewapproslot/'</script>''')
+
+    else:
+        return HttpResponse('''<script>alert("Please try again!"); window.location='/myapp/viewapproslot/'</script>''')
+
+from datetime import datetime, timedelta
+
+
+def cancel_slot(request):
+    if 'lid' in request.POST:
+        sid = request.POST['rid']
+        lid = request.POST['lid']
+
+        # Update booking request status to "cancel"
+        BookingRequest.objects.filter(id=sid).update(status="Cancelled")
+
+        # Get the booking request
+        aa = BookingRequest.objects.get(id=sid)
+
+        currenttime = datetime.now()
+        fromtime = datetime.strptime(aa.SLOT.fromtime, "%I:%M %p")
+        totime = datetime.strptime(aa.SLOT.totime, "%I:%M %p")
+        slotid = aa.SLOT.id
+
+        print(currenttime, "Current Time")
+        print(fromtime, "From Time")
+        print(totime, "To Time")
+
+        print(totime - fromtime)
+
+        time_diff = (totime - currenttime).total_seconds() / 60
+        print(time_diff, "Time Difference")
+
+        # Calculate the time difference between the canceled slot's end time and the next slot's expected start time
+        next_slots = Slot.objects.filter(id__gte=slotid, date__gte=datetime.now().date()).order_by('id')
+
+        for slot in next_slots:
+            sm = datetime.strptime(str(slot.expectedtime), "%I:%M %p")
+
+            if time_diff > 0:
+                new_expected_time = currenttime + timedelta(minutes=time_diff)
+            else:
+                new_expected_time = currenttime - timedelta(minutes=-time_diff)
+            start_time = datetime.strptime(slot.fromtime, "%I:%M %p")
+            end_time = datetime.strptime(slot.totime, "%I:%M %p")
+
+            time_difference = end_time - start_time
+
+            time_difference_minutes = time_difference.total_seconds() / 60
+            print(time_difference_minutes)
+            time_duration_parts = str(time_difference).split(':')
+            print(time_duration_parts)
+            time_duration = timedelta(
+                hours=int(time_duration_parts[0].split('.')[0]),
+                                      minutes=int(time_duration_parts[1]),
+                                      seconds=int(time_duration_parts[2]))
+
+            # Subtract the time duration from the given time to get the result time
+            print(sm, time_duration, time_duration)
+            print(sm - time_difference, 'rrrr')
+            result_time = str(sm - time_difference).split(' ')[1]
+            time_obj = datetime.strptime(result_time, "%H:%M:%S")
+
+            formatted_time_str = time_obj.strftime("%I:%M %p")
+
+            slot.expectedtime = formatted_time_str
+            slot.save()
+        aa.status = 'Cancelled'
+        aa.save()
+
+        print("Slot canceled successfully!")
+        return JsonResponse({'status':'ok'})
+    return JsonResponse({'status': 'ok'})
+
+
+# def cancel_request(request):
+#     rid=request.POST['rid']
+#     lid = request.POST['lid']
+#     res = BookingRequest.objects.filter(id=rid,USER__LOGIN__id=lid).update(status="cancel")
+#     return HttpResponse('''<script>alert('Updated Successfully !!');window.location="/myapp/viewapproslot/"</script>''')
+
+
+#####3 chat############################
+
+
+def chat(request, id):
+    request.session["userid"] = id
+    cid = str(request.session["userid"])
+    request.session["new"] = cid
+    qry = User.objects.get(LOGIN_id=cid)
+
+    return render(request, "Business/Chat.html", {'photo': qry.photo, 'name': qry.name, 'toid': cid})
+
+
+def chat_view(request):
+    fromid = request.session["lid"]
+    toid = request.session["userid"]
+    qry = User.objects.get(LOGIN_id=request.session["userid"])
+    from django.db.models import Q
+
+    res = Chat.objects.filter(Q(FROM=fromid, TO=toid) | Q(FROM=toid, TO=fromid))
+    l = []
+
+    for i in res:
+        l.append({"id": i.id, "message": i.message, "to": i.TO_id, "date": i.date, "from": i.FROM_id})
+
+    return JsonResponse({'photo': qry.photo, "data": l, 'name': qry.name, 'toid': request.session["userid"]})
+
+
+def chat_send(request, msg):
+    lid = request.session["lid"]
+    toid = request.session["userid"]
+    message = msg
+
+    import datetime
+    d = datetime.datetime.now().date()
+    chatobt = Chat()
+    chatobt.message = message
+    chatobt.TO_id = toid
+    chatobt.FROM_id = lid
+    chatobt.time = datetime.datetime.now().time()
+    chatobt.date = d
+    chatobt.save()
+
+    return JsonResponse({"status": "ok"})
 
 
 
@@ -732,15 +1070,49 @@ def user_feedbackapp(request):
 
 
 
+def user_sendchat(request):
+    FROM_id=request.POST['from_id']
+    TOID_id=request.POST['to_id']
+    # print(FROM_id, TOID_id,"Lk")
+    msg=request.POST['message']
+    from  datetime import datetime
+    c=Chat()
+    c.FROM_id=FROM_id
+    c.TO_id=TOID_id
+    c.message=msg
+    c.date=datetime.now().date()
+    c.time=datetime.now().time()
+    c.save()
+    return JsonResponse({'status':"ok"})
 
 
+def user_viewchat(request):
+    fromid = request.POST["from_id"]
+    toid = request.POST["to_id"]
+    # lmid = request.POST["lastmsgid"]
+    print(fromid)
+    print(toid)
+    from django.db.models import Q
+
+    res = Chat.objects.filter(Q(FROM_id=fromid, TO_id=toid) | Q(FROM_id=toid, TO_id=fromid))
+    l = []
+    for i in res:
+        l.append({"id": i.id, "msg": i.message, "from": i.FROM_id, "date": i.date, "to": i.TO_id})
+
+    return JsonResponse({"status":"ok",'data':l})
 
 
-
-
-
-
-
-
-
-
+def viewNotification(request):
+    nid = request.POST["nid"]
+    lid = request.POST["lid"]
+    res = Notification.objects.filter(id__gt=nid, TO_id=lid)
+    l = []
+    for i in res:
+        l.append({"id": i.id, "msg": i.message, "from": i.FROM_id, "date": i.date, "to": i.TO_id})
+        from_ = i.FROM.type
+        if from_ != 'admin':
+            from_ = Bussiness.objects.get(LOGIN_id=i.FROM.id).name
+            if i.type == 'Slot Approval':
+                from_ = i.type
+        return JsonResponse({"status":"ok",'message':i.message, 'from':from_, 'nid':str(i.id)})
+    return JsonResponse({"status":"ok",'data':l, 'nid':nid})

@@ -135,5 +135,15 @@ urlpatterns = [
     path('user_feedbackbussiness/',views.user_feedbackbussiness),
 
     path('user_feedbackapp/',views.user_feedbackapp),
+    path('user_view_request/',views.user_view_request),
+    path('user_view_request_home/',views.user_view_request_home),
+    path('business_updatestatus/<sid>',views.finish_booking),
+    path('cancel_request/',views.cancel_slot),
+    path('user_sendchat/',views.user_sendchat),
+    path('user_viewchat/',views.user_viewchat),
+    path('chat/<id>',views.chat),
+    path('chat_view/',views.chat_view),
+    path('chat_send/<msg>',views.chat_send),
+    path('viewNotification/', views.viewNotification),
 
 ]

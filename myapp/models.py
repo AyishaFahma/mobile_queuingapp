@@ -48,8 +48,9 @@ class Slot(models.Model):
     BUSSINESS = models.ForeignKey(Bussiness,on_delete=models.CASCADE)
     number = models.IntegerField()
     date=models.DateField()
-    fromtime = models.TimeField()
-    totime = models.TimeField()
+    fromtime = models.CharField(max_length=100,default="")
+    totime = models.CharField(max_length=100,default="")
+    expectedtime = models.CharField(max_length=100,default="")
 
 
 class BookingRequest(models.Model):
@@ -68,9 +69,9 @@ class Notification(models.Model):
     type = models.CharField(max_length=400)
 
 class Chat(models.Model):
-    BUSSINESS = models.ForeignKey(Login,on_delete=models.CASCADE,related_name="bussiness1")
-    CUSTOMER = models.ForeignKey(Login,on_delete=models.CASCADE,related_name="customer1")
-    meassage = models.CharField(max_length=900)
+    FROM = models.ForeignKey(Login,on_delete=models.CASCADE,related_name="bussiness1")
+    TO = models.ForeignKey(Login,on_delete=models.CASCADE,related_name="customer1")
+    message = models.CharField(max_length=900)
     date = models.DateField()
     time = models.TimeField()
 
@@ -79,7 +80,7 @@ class FeedbackApp(models.Model):
     review = models.CharField(max_length=900)
     date = models.DateField()
     time = models.TimeField()
-    rating = models.CharField(max_length=100)
+
 
 class FeedbackBussiness(models.Model):
     CUSTOMER = models.ForeignKey(User,on_delete=models.CASCADE)
