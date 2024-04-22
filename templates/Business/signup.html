@@ -1,0 +1,147 @@
+<!--
+Author: W3layouts
+Author URL: http://w3layouts.com
+License: Creative Commons Attribution 3.0 Unported
+License URL: http://creativecommons.org/licenses/by/3.0/
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Haunt Signup Form Responsive Widget Template | Home :: w3layouts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="keywords" content="Haunt Signup Form Responsive, Signup form web template, Sign up Web Templates, Flat Web Templates, Login signup Responsive web template, Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+<link href="/static/signup/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="all">
+<link href="/static/signup/css/style.css" rel="stylesheet" type="text/css" media="all"/>
+<link href="//fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900" rel="stylesheet">
+<link href="//fonts.googleapis.com/css?family=Josefin+Sans:400,600,700" rel="stylesheet">
+</head>
+<body>
+<h1>Shop Signup Form</h1>
+<div class="container">
+<form action="/myapp/signup_post/" enctype="multipart/form-data" method="post">
+      {% csrf_token %}
+<h2>SIGN UP WITH</h2>
+<div class="agile_ihj">
+{#<div class="w3l_f">#}
+{#<a href="#"><i class="fa fa-facebook" aria-hidden="true"></i> <span>FACEBOOK<span></a>#}
+{#</div>#}
+{#<div class="w3_l">#}
+{#<a href="#"><i class="fa fa-linkedin" aria-hidden="true"></i> <span class="w3_sp">LINKEDIN</span></a>#}
+{#</div>#}
+{#<div class="w3ls_t">#}
+{#<a href="#"><i class="fa fa-twitter" aria-hidden="true"></i> <span class="w3_sp1">TWITTER</span></a>#}
+{#</div>#}
+<div class="clear"></div>
+</div>
+<div class="w3l_o">
+<div class="strip">OR</div>
+</div>
+<div class="agileinfo">
+    <input type="text" name="textfield" id="textfield"  placeholder="Name" pattern="[a-zA-Z ]+" required="" />
+</div>
+<div class="agileinfo">
+<input type="text" name="textfield2" id="textfield2" placeholder="City"  required="" />
+</div>
+    <div class="agileinfo">
+ <input type="text" name="textfield4" id="textfield4" placeholder="State"  required="" />
+</div>
+    <div class="agileinfo">
+          <input type="text" name="textfield5" id="textfield5" placeholder="Pin"  pattern="[6][023456789]{5}" required=""maxlength="6" />
+</div>
+    <div class="agileinfo">
+<select name="textfield3" id="select">
+        <option value="Kasargod">Kasargod</option>
+        <option value="Kannur">Kannur</option>
+        <option value="Malappuram">Malappuram</option>
+      </select></div>
+    <div class="agileinfo">
+        <input type="text" name="textfield6" id="textfield6" required=""  placeholder="Post"/>
+</div>
+    <div class="agileinfo">
+          <input type="text" name="textfield7" id="textfield7"  placeholder="Phone Number" pattern="[6789][0123456789]{9}" required="" />
+</div>
+    <div class="agileinfo">
+<input type="email" name="textfield10" id="textfield10" placeholder="Email" required />
+</div>
+    <div class="agileinfo"><label for="fileField" style="color: white">ID Proof</label>
+         <input type="file" name="fileField" id="fileField" placeholder="Id Proof" required />
+
+</div>
+    <div class="agileinfo"><label for="fileField2" style="color: white">Logo</label>
+         <input type="file" name="fileField2" id="fileField2" placeholder="Logo" required />
+
+</div>
+    <div class="agileinfo">
+  <input type="text" name="textfield13" id="textfield13" placeholder="Prop Name" required />
+</div>
+
+
+    <div class="agileinfo"><label for="fileField3" style="color: white">Prop Photo</label>
+  <input type="file" name="fileField3" id="fileField3" placeholder="Prop Photo" required />
+</div>
+<div class="agileinfo">
+<input type="email" name="textfield14" id="textfield14" placeholder="Prop Email" required />
+</div>
+<div class="agileinfo">
+  <input type="text" name="textfield15" id="textfield15" placeholder="Prop Phone"pattern="[6789][0123456789]{9}" required/>
+</div>
+    <div class="agileinfo">
+  <input type="text" name="textfield16" id="textfield16" placeholder="Website" required/>
+</div>
+    <div class="agileinfo"><label for="textfield11" style="color: white">Opening Time</label>
+] <input type="time" name="textfield11" id="textfield11"  placeholder="Opening Time" required/>
+</div>
+    <div class="agileinfo"><label for="textfield12" style="color: white">Closing Time</label>
+  <input type="time" name="textfield12" id="textfield12" placeholder="Closing  Time" required/>
+</div>
+    <div class="agileinfo">
+  <input type="text" name="textfield8" id="textfield8"  placeholder="Password" required/>
+</div>
+    <div class="agileinfo">
+  <input type="text" name="textfield9" id="textfield9"   placeholder="Confirm Password" required/>
+</div>
+{#<div class="w3l_tx">#}
+{#<input type="checkbox" name="" value=""><span class="w3l_chk">I would like to receive newsletters</span>#}
+{#</div>#}
+{#<div class="agile_par">#}
+{#<p>By signing up I agree to <a href="#">Terms of Service</a> and <a href="#">Private Policy</a></p>#}
+{#</div>#}
+<div class="w3l_but">
+<button type="submit">REGISTER</button>
+</div>
+</form>
+{#<div class="wthree_down">#}
+{#<h3>Already had an Account please Login</h3>#}
+{#</div>#}
+{#<div class="w3agile_side">#}
+{#<div class="main">#}
+{#    <div class="panel">#}
+{#        <a href="#login_form" id="login_pop">LOGIN</a>#}
+{#    </div>#}
+{#</div>#}
+{#<!-- popup form #1 -->#}
+{#<a href="#x" class="overlay" id="login_form"></a>#}
+{#   <div class="popup">#}
+{#     <h2>Welcome</h2>#}
+{#     <p>Please enter your Username and Password here</p>#}
+{#	 <form action="#" method="post">#}
+{#   <div>#}
+{#      <input type="text" name="name" placeholder="Username" required="">#}
+{#   </div>#}
+{#   <div>#}
+{##}
+{#   <input type="password" name="name" placeholder="Password" required="">#}
+{#   </div>#}
+{#   <a href="#"><input type="submit" value="LOGIN" /></a>#}
+{#   <a class="close" href="#close"></a>#}
+{#   </form>#}
+{#</div>#}
+{#</div>#}
+<div class="clear"></div>
+</div>
+<div class="footer">
+ <p>&copy; Haunt Signup Form  2018. All Rights Reserved | Design by <a href="https://w3layouts.com/" target="blank">W3layouts</a></p>
+ </div>
+</body>
+</html>
