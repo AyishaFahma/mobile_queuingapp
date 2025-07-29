@@ -448,13 +448,15 @@ def rejectslot(request,id):
 
 
 def viewapproslot(request):
+    dt = str(datetime.now().date().today())
     var=BookingRequest.objects.filter(status='approved', SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
-    return render(request,'Business/view approved slots.html',{'data':var})
+    return render(request, 'Business/view approved slots.html',{'data':var, 'dt':dt})
 
 def viewapproslot_post(request):
     search=request.POST['textfield']
+    dt = str(datetime.now().date().today())
     var=BookingRequest.objects.filter(status='approved',id__icontains=search, SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
-    return render(request, 'Business/view approved slots.html',{'data':var})
+    return render(request, 'Business/view approved slots.html',{'data':var, 'dt':dt})
 
 def viewrejectslot(request):
     var=BookingRequest.objects.filter(status='rejected', SLOT__BUSSINESS__LOGIN_id= request.session['lid'])
@@ -898,6 +900,7 @@ def finish_booking(request, sid):
 
         current_time = datetime.now()
         time_obj = datetime.strptime(aa.SLOT.totime, "%I:%M %p")
+        # time_obj = datetime.strptime(aa.SLOT.totime, "%I:%M %p")
         formatted_time_str = time_obj.strftime("%H:%M:%S.%f")
 
         totime = datetime.strptime(str(aa.SLOT.date)+' '+formatted_time_str, "%Y-%m-%d %H:%M:%S.%f")

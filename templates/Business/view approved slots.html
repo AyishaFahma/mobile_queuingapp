@@ -21,6 +21,7 @@
     <th>Email</th>
     <th>Address</th>
     <th>Slot No</th>
+    <th>Slot Date</th>
     <th>Date &amp; Time</th>
     <th>Status</th>
     <th colspan="3"></th>
@@ -36,11 +37,16 @@
     <td>&nbsp;{{ i.USER.email }}</td>
     <td>&nbsp;{{ i.USER.place }} <br> {{ i.USER.post }} <br> {{ i.USER.pincode }}</td>
     <td>&nbsp;{{ i.SLOT.number }}</td>
+    <td> {{ i.SLOT.date }}</td>
     <td>&nbsp;{{ i.date }} <br> {{ i.time }}</td>
     <td>{{ i.status }}</td>
     <td><a href="/myapp/sendnotifibusines/{{ i.USER.LOGIN.id }}" class="btn btn-outline-secondary">Send Notification</a></td>
     <td><a href="/myapp/chat/{{ i.USER.LOGIN.id }}" class="btn btn-primary">Chat</a></td>
-    <td><a href="/myapp/business_updatestatus/{{ i.id }}" class="btn btn-success">Finish</a></td>
+    <td>{% if i.SLOT.date|tostringformat == dt %}
+<a href="/myapp/business_updatestatus/{{ i.id }}" class="btn btn-success">Finish</a>
+        {% else %}
+        Not Yet Time
+    {% endif %}</td>
   </tr>
     {% endfor %}
 </table>
